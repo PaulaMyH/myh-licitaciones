@@ -2,7 +2,7 @@
   "name": "M&H — Asistente de Licitaciones",
   "short_name": "M&H Licitaciones",
   "description": "Buscador de licitaciones públicas para M&H Consultores",
-  "start_url": "/",
+"start_url": "/myh-licitaciones/"
   "display": "standalone",
   "background_color": "#0f172a",
   "theme_color": "#0f172a",
