@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#0f172a" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="M&H Licitaciones" />
+  <title>M&H — Asistente de Licitaciones</title>
+  <link rel="manifest" href="manifest.json" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8fafc; color: #0f172a; -webkit-tap-highlight-color: transparent; }
+    #app { max-width: 700px; margin: 0 auto; min-height: 100vh; }
+    .header { background: #0f172a; padding: 20px 20px 16px; }
+    .header-brand { font-size: 11px; letter-spacing: .2em; color: #475569; text-transform: uppercase; margin-bottom: 4px; }
+    .header-title { font-size: 21px; font-weight: 700; color: #f8fafc; margin-bottom: 4px; }
+    .header-meta { display: flex; gap: 10px; align-items: center; }
+    .header-sub { font-size: 12px; color: #64748b; }
+    .badge-live { font-size: 10px; background: #dcfce7; color: #166534; padding: 2px 8px; border-radius: 10px; font-weight: 700; }
+    .tabs { display: flex; background: #1e293b; padding: 0 20px; }
+    .tab-btn { background: none; border: none; border-bottom: 2px solid transparent; color: #64748b; padding: 11px 0; margin-right: 22px; font-size: 12px; cursor: pointer; font-family: inherit; }
+    .tab-btn.active { border-bottom-color: #c4a96b; color: #c4a96b; }
+    .content { padding: 18px 18px 50px; }
+    .card { background: #fff; border-radius: 14px; border: 1px solid #e2e8f0; padding: 16px; margin-bottom: 12px; }
+    .card-title { font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: .08em; margin-bottom: 14px; }
+    .filter-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+    .filter-label { font-size: 12px; color: #64748b; display: block; margin-bottom: 5px; }
+    .filter-select { width: 100%; padding: 9px 11px; border-radius: 10px; border: 1.5px solid #e2e8f0; font-size: 13px; background: #f8fafc; font-family: inherit; outline: none; }
+    .kw-container { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+    .kw-tag { background: #eef2ff; color: #4338ca; font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 20px; display: inline-flex; align-items: center; gap: 5px; }
+    .kw-remove { background: none; border: none; cursor: pointer; color: #6366f1; font-size: 14px; padding: 0; line-height: 1; }
+    .kw-input-row { display: flex; gap: 8px; }
+    .kw-input { flex: 1; padding: 9px 12px; border-radius: 10px; border: 1.5px solid #e2e8f0; font-size: 13px; font-family: inherit; outline: none; }
+    .kw-add { padding: 9px 16px; background: #eef2ff; color: #4338ca; border: none; border-radius: 10px; font-size: 14px; font-weight: 700; cursor: pointer; }
+    .toggle-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-top: 1px solid #f1f5f9; margin-top: 8px; }
+    .toggle-label { font-size: 13px; color: #334155; }
+    .toggle { position: relative; width: 40px; height: 22px; }
+    .toggle input { opacity: 0; width: 0; height: 0; }
+    .toggle-slider { position: absolute; inset: 0; background: #e2e8f0; border-radius: 22px; cursor: pointer; transition: .2s; }
+    .toggle-slider::before { content: ""; position: absolute; width: 16px; height: 16px; left: 3px; top: 3px; background: #fff; border-radius: 50%; transition: .2s; }
+    .toggle input:checked + .toggle-slider { background: #6366f1; }
+    .toggle input:checked + .toggle-slider::before { transform: translateX(18px); }
+    .btn-search { width: 100%; padding: 13px; background: #0f172a; color: #fff; border: none; border-radius: 12px; font-size: 15px; font-weight: 700; cursor: pointer; margin-bottom: 14px; font-family: inherit; }
+    .btn-search:disabled { opacity: .65; cursor: not-allowed; }
+    .banner { border-radius: 10px; padding: 11px 14px; margin-bottom: 12px; }
+    .banner-success { background: #dcfce7; }
+    .banner-success .bt { font-size: 13px; font-weight: 700; color: #166534; margin-bottom: 2px; }
+    .banner-success .bs { font-size: 11px; color: #166534; }
+    .banner-error { background: #fee2e2; }
+    .banner-error .bt { font-size: 13px; font-weight: 700; color: #991b1b; }
+    .loading-box { background: #fff; border-radius: 12px; border: 1px solid #e2e8f0; padding: 24px; margin-bottom: 12px; text-align: center; }
+    .spinner { width: 28px; height: 28px; border: 3px solid #e2e8f0; border-top-color: #6366f1; border-radius: 50%; animation: spin .8s linear infinite; margin: 0 auto 10px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-text { font-size: 13px; color: #64748b; margin-bottom: 4px; }
+    .loading-sub { font-size: 12px; color: #94a3b8; }
+    .lic-card { background: #fff; border-radius: 14px; border: 1px solid #e2e8f0; margin-bottom: 10px; padding: 14px 16px; }
+    .lic-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 4px; }
+    .lic-nombre { font-size: 14px; font-weight: 700; color: #0f172a; line-height: 1.4; margin-bottom: 3px; }
+    .lic-organismo { font-size: 12px; color: #64748b; margin-bottom: 8px; }
+    .dias-badge { font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 20px; white-space: nowrap; flex-shrink: 0; }
+    .tags-row { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 8px; }
+    .kw-match-tag { background: #fffbeb; color: #92400e; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 10px; border: 1px solid #fde68a; }
+    .lic-meta { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+    .lic-meta span { font-size: 11px; color: #94a3b8; }
+    .btn-mp { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: #6366f1; font-weight: 700; text-decoration: none; background: #eef2ff; padding: 7px 14px; border-radius: 8px; border: 1px solid #c7d2fe; }
+    .btn-reset { width: 100%; padding: 11px; background: #fee2e2; color: #991b1b; border: none; border-radius: 12px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit; margin-top: 8px; }
+    .info-note { background: #fef9c3; border-radius: 10px; padding: 11px 14px; margin-top: 12px; font-size: 12px; color: #854d0e; line-height: 1.5; }
+  </style>
+</head>
+<body>
+<div id="app">
+  <div class="header">
+    <div class="header-brand">M&H Consultores</div>
+    <div class="header-title">Asistente de Licitaciones</div>
+    <div class="header-meta">
+      <span class="header-sub">Mercado Público · Todo Chile · Datos reales</span>
+      <span class="badge-live">● EN VIVO</span>
+    </div>
+  </div>
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('buscar',this)">🔍 Buscar</button>
+    <button class="tab-btn" onclick="switchTab('config',this)">⚙️ Configuración</button>
+  </div>
+  <div class="content" id="content"></div>
+</div>
+<script>
+const PROXY_URL = "https://script.google.com/macros/s/AKfycbx0XeA5WRbdAAFxmqtxF-8uFrFlDf4xUX2IQ0Id76pSwfR0_lYkfZQtgsjEF8HJk25B/exec";
+const KEYWORDS_DEFAULT = ["jardín infantil","jardines infantiles","sala cuna","escuela","colegio","equipamiento comunitario","centro cultural","arquitectura","habilitación","ampliación","JUNJI","SERVIU","infraestructura educacional"];
+const PALABRAS_EXCLUIR = ["textos escolares","materiales de oficina","articulos de libreria","alimentacion","transporte escolar","mobiliario","computadores","notebook","tablet","aseo","limpieza","vigilancia","arriendo","mantencion","suministro de","adquisicion de","vestuario","uniformes","medicamentos","combustible","impresion","papeleria"];
+const PALABRAS_ITO = ["inspeccion tecnica","inspector tecnico","inspector de obras"," ito ","itop"];
+const REGIONES = ["Todas","Arica y Parinacota","Tarapacá","Antofagasta","Atacama","Coquimbo","Valparaíso","Metropolitana","O'Higgins","Maule","Ñuble","Biobío","La Araucanía","Los Ríos","Los Lagos","Aysén","Magallanes"];
+
+function loadCfg() { try { return JSON.parse(localStorage.getItem("mh-lic-v3")||"{}"); } catch { return {}; } }
+function saveCfg() { try { localStorage.setItem("mh-lic-v3", JSON.stringify({keywords:S.keywords,region:S.region,diasAtras:S.diasAtras,excluirVenceHoy:S.excluirVenceHoy})); } catch {} }
+const cfg = loadCfg();
+let S = {
+  tab:"buscar", keywords:cfg.keywords||KEYWORDS_DEFAULT.slice(0,8),
+  region:cfg.region||"Todas", diasAtras:cfg.diasAtras||7,
+  excluirVenceHoy:cfg.excluirVenceHoy!==undefined?cfg.excluirVenceHoy:true,
+  licitaciones:[], todasFiltradas:[], pagina:1, buscando:false, progreso:"", stats:null, error:"",
+};
+
+function n(t){return(t||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");}
+function fmt(m){return m?"$"+Number(m).toLocaleString("es-CL"):"No especificado";}
+function diasR(f){return f?Math.ceil((new Date(f)-new Date())/864e5):null;}
+function diasS(d){
+  if(d===null)return{bg:"#f1f5f9",c:"#94a3b8"};
+  if(d<=0)return{bg:"#fee2e2",c:"#ef4444"};
+  if(d<=5)return{bg:"#fef3c7",c:"#d97706"};
+  if(d<=10)return{bg:"#fef9c3",c:"#eab308"};
+  return{bg:"#dcfce7",c:"#22c55e"};
+}
+
+function render(){
+  document.getElementById("content").innerHTML = S.tab==="buscar" ? renderBuscar() : renderConfig();
+}
+
+function renderBuscar(){
+  const rOpts=REGIONES.map(r=>`<option${r===S.region?" selected":""}>${r}</option>`).join("");
+  const dOpts=[[3,"Últimos 3 días"],[7,"Última semana"],[14,"2 semanas"],[30,"Último mes"]].map(([v,l])=>`<option value="${v}"${v===S.diasAtras?" selected":""}>${l}</option>`).join("");
+  const kwTags=S.keywords.map(kw=>`<span class="kw-tag">${kw}<button class="kw-remove" onclick="removeKW('${kw.replace(/'/g,"\\'")}')">×</button></span>`).join("");
+  let status="";
+  if(S.buscando){
+    status=`<div class="loading-box"><div class="spinner"></div><div class="loading-text">${S.progreso||"Consultando Mercado Público…"}</div><div class="loading-sub">Esto tarda entre 15 y 30 segundos, espera un momento</div></div>`;
+  } else if(S.error){
+    status=`<div class="banner banner-error"><p class="bt">⚠️ ${S.error}</p></div>`;
+  } else if(S.stats){
+    status=S.licitaciones.length>0
+      ?`<div class="banner banner-success"><p class="bt">✅ ${S.licitaciones.length} licitaciones relevantes encontradas</p><p class="bs">De ${S.stats.total} publicadas · ${S.stats.filtradas} pasaron los filtros</p></div>`
+      :`<div class="banner banner-error"><p class="bt">⚠️ No se encontraron licitaciones. Prueba con otras palabras clave.</p></div>`;
+  }
+  const lics=S.licitaciones.map(lic=>{
+    const nombre=lic.Nombre||lic.NombreLicitacion||"Sin nombre";
+    const org=lic.Nombre_org_unidad_compradora||lic.NombreOrganismo||"—";
+    const monto=fmt(lic.MontoEstimado);
+    const cierre=lic.FechaCierre?lic.FechaCierre.split("T")[0]:"—";
+    const codigo=lic.CodigoExterno||lic.Codigo||"";
+    const dias=diasR(lic.FechaCierre); const ds=diasS(dias);
+    const diasLabel=dias===null?"—":dias<=0?"Vence hoy":dias+"d restantes";
+    const matches=lic._kw||[];
+    const urlMP=codigo?`https://www.mercadopublico.cl/Procurement/Modules/RFB/DetailsAcquisition.aspx?idlicitacion=${encodeURIComponent(codigo)}`:"";
+    return `<div class="lic-card">
+      <div class="lic-top"><div style="flex:1"><div class="lic-nombre">${nombre}</div><div class="lic-organismo">${org}</div></div>
+      <span class="dias-badge" style="background:${ds.bg};color:${ds.c}">${diasLabel}</span></div>
+      <div class="tags-row">${matches.map(kw=>`<span class="kw-match-tag">🔍 ${kw}</span>`).join("")}</div>
+      <div class="lic-meta"><span>📅 ${cierre}</span><span>💰 ${monto}</span>${codigo?`<span>📋 ${codigo}</span>`:""}</div>
+      ${urlMP?`<a href="${urlMP}" target="_blank" class="btn-mp">🔗 Ver en Mercado Público →</a>`:""}
+    </div>`;
+  }).join("");
+  return `<div class="card">
+    <div class="card-title">Filtros de búsqueda</div>
+    <div class="filter-grid">
+      <div><label class="filter-label">Región</label><select class="filter-select" onchange="S.region=this.value;saveCfg()">${rOpts}</select></div>
+      <div><label class="filter-label">Período</label><select class="filter-select" onchange="S.diasAtras=Number(this.value);saveCfg()">${dOpts}</select></div>
+    </div>
+    <label class="filter-label">Palabras clave</label>
+    <div class="kw-container">${kwTags}</div>
+    <div class="kw-input-row"><input class="kw-input" id="kw-input" placeholder="Agregar palabra clave…" onkeydown="if(event.key==='Enter')addKW()"/><button class="kw-add" onclick="addKW()">+</button></div>
+    <div class="toggle-row"><span class="toggle-label">Excluir licitaciones que vencen hoy</span>
+      <label class="toggle"><input type="checkbox" ${S.excluirVenceHoy?"checked":""} onchange="S.excluirVenceHoy=this.checked;saveCfg()"/><span class="toggle-slider"></span></label>
+    </div></div>
+    <button class="btn-search" onclick="buscar()" ${S.buscando?"disabled":""}>
+      ${S.buscando?"⏳ Buscando, espera un momento…":"🔍 Buscar licitaciones reales"}</button>
+    ${status}${lics}
+    ${S.licitaciones.length>0?`<button onclick="verMas()" id="btn-ver-mas" style="display:${S.todasFiltradas.length>S.licitaciones.length?"block":"none"};width:100%;padding:13px;background:#fff;color:#6366f1;border:2px solid #6366f1;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;margin-bottom:12px">📋 Ver más — quedan ${S.todasFiltradas.length-S.licitaciones.length}</button><div class="info-note">💡 Haz clic en "Ver en Mercado Público" para abrir la ficha completa.</div>`:""}`;
+}
+
+function renderConfig(){
+  const kwTags=S.keywords.map(kw=>`<span class="kw-tag">${kw}<button class="kw-remove" onclick="removeKW('${kw.replace(/'/g,"\\'")}')">×</button></span>`).join("");
+  return `<div class="card">
+    <div class="card-title">Palabras clave</div>
+    <p style="font-size:12px;color:#64748b;margin-bottom:12px;line-height:1.5">Se guardan en tu navegador automáticamente.</p>
+    <div class="kw-container">${kwTags}</div>
+    <div class="kw-input-row"><input class="kw-input" id="kw-input" placeholder="Agregar palabra clave…" onkeydown="if(event.key==='Enter')addKW()"/><button class="kw-add" onclick="addKW()">+</button></div>
+    <div style="margin-top:20px">
+      <div class="card-title">Filtros por defecto</div>
+      <div class="filter-grid">
+        <div><label class="filter-label">Región favorita</label>
+          <select class="filter-select" onchange="S.region=this.value;saveCfg()">${REGIONES.map(r=>`<option${r===S.region?" selected":""}>${r}</option>`).join("")}</select></div>
+        <div><label class="filter-label">Período por defecto</label>
+          <select class="filter-select" onchange="S.diasAtras=Number(this.value);saveCfg()">
+            ${[[3,"3 días"],[7,"Semana"],[14,"2 semanas"],[30,"Mes"]].map(([v,l])=>`<option value="${v}"${v===S.diasAtras?" selected":""}>${l}</option>`).join("")}
+          </select></div>
+      </div>
+    </div>
+    <button class="btn-reset" onclick="resetCfg()">🔄 Restaurar configuración original</button>
+  </div>`;
+}
+
+async function buscar(){
+  S.buscando=true; S.licitaciones=[]; S.stats=null; S.error="";
+  S.progreso="Conectando con Mercado Público…"; render();
+  try {
+    const r=await fetch(`${PROXY_URL}?dias=${S.diasAtras}`,{redirect:"follow"});
+    const d=await r.json();
+    if(!d.ok)throw new Error(d.error||"Error del servidor");
+    S.progreso="Filtrando licitaciones…"; render();
+    const todas=d.licitaciones||[];
+    const kwsN=S.keywords.map(n);
+    const exclN=PALABRAS_EXCLUIR.map(n);
+    const itoN=PALABRAS_ITO.map(n);
+    let fil=todas.map(l=>{
+      const txt=n(`${l.Nombre||""} ${l.NombreLicitacion||""} ${l.Nombre_org_unidad_compradora||""} ${l.NombreOrganismo||""}`);
+      if(itoN.some(p=>txt.includes(p)))return null;
+      if(exclN.some(p=>txt.includes(p)))return null;
+      const matches=kwsN.filter(kw=>txt.includes(kw));
+      if(matches.length===0)return null;
+      return{...l,_kw:matches};
+    }).filter(Boolean);
+    // Excluir siempre las ya cerradas (fecha pasada)
+    fil=fil.filter(l=>{const d=diasR(l.FechaCierre);return d===null||d>=0;});
+    // Si toggle activo, excluir también las que vencen hoy
+    if(S.excluirVenceHoy)fil=fil.filter(l=>{const d=diasR(l.FechaCierre);return d===null||d>0;});
+    if(S.region!=="Todas"){const rN=n(S.region.split(" ")[0]);fil=fil.filter(l=>n(l.Nombre_org_unidad_compradora||l.NombreOrganismo||"").includes(rN));}
+    fil.sort((a,b)=>{if(b._kw.length!==a._kw.length)return b._kw.length-a._kw.length;return new Date(a.FechaCierre)-new Date(b.FechaCierre);});
+    S.stats={total:todas.length,filtradas:fil.length};
+    S.todasFiltradas=fil;
+    S.pagina=1;
+    S.licitaciones=fil.slice(0,30);
+  } catch(e){ S.error=e.message||"No se pudo conectar. Intenta de nuevo."; }
+  S.buscando=false; S.progreso=""; render();
+}
+
+function verMas(){
+  S.pagina++;
+  S.licitaciones=S.todasFiltradas.slice(0,S.pagina*30);
+  render();
+  // Scroll suave al final
+  setTimeout(()=>window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'}),100);
+}
+function addKW(){const i=document.getElementById("kw-input");if(!i)return;const kw=i.value.trim();if(kw&&!S.keywords.map(k=>k.toLowerCase()).includes(kw.toLowerCase())){S.keywords.push(kw);i.value="";saveCfg();render();}}
+function removeKW(kw){S.keywords=S.keywords.filter(k=>k!==kw);saveCfg();render();}
+function switchTab(tab,el){S.tab=tab;document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("active"));el.classList.add("active");render();}
+function resetCfg(){if(!confirm("¿Restaurar configuración original?"))return;S.keywords=KEYWORDS_DEFAULT.slice(0,8);S.region="Todas";S.diasAtras=7;S.excluirVenceHoy=true;saveCfg();render();}
+
+render();
+</script>
+</body>
+</html>
